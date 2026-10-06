@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strategi Algoritmik - Algoritma Greedy</title>
+<style>
+    /* === RESET & GLOBAL === */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+    }
+
+    body {
+        min-height: 100vh;
+        background: linear-gradient(145deg, #e6f0ff 0%, #ffffff 40%, #fff9e6 100%);
+        overflow-x: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 20px;
+        position: relative;
+    }
+
+    /* === BACKGROUND ANIME === */
+    .bg-anime {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -2;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .bg-anime .circle {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0.15;
+        animation: float 12s infinite ease-in-out;
+    }
+
+    .bg-anime .circle:nth-child(1) {
+        width: 400px; height: 400px;
+        background: #4a90e2;
+        top: -100px; left: -100px;
+    }
+
+    .bg-anime .circle:nth-child(2) {
+        width: 300px; height: 300px;
+        background: #f5c542;
+        bottom: -80px; right: -80px;
+        animation-delay: -3s;
+    }
+
+    .bg-anime .circle:nth-child(3) {
+        width: 200px; height: 200px;
+        background: #ffffff;
+        top: 40%; left: 70%;
+        animation-delay: -6s;
+        box-shadow: 0 0 60px rgba(74, 144, 226, 0.3);
+    }
+
+    .bg-anime .circle:nth-child(4) {
+        width: 150px; height: 150px;
+        background: #4a90e2;
+        bottom: 20%; left: 10%;
+        animation-delay: -9s;
+    }
+
+    .bg-anime .particle {
+        position: absolute;
+        width: 6px; height: 6px;
+        background: #f5c542;
+        border-radius: 50%;
+        opacity: 0.4;
+        animation: floatParticle 8s infinite linear;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(30px, -30px) scale(1.1); }
+    }
+
+    @keyframes floatParticle {
+        0% { transform: translateY(0) rotate(0deg); opacity: 0.2; }
+        50% { opacity: 0.8; }
+        100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* === KONTENER UTAMA === */
+    .app-container {
+        max-width: 1100px;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 40px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.6);
+        padding: 30px 35px;
+        margin: 20px 0;
+        position: relative;
+        z-index: 1;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* === HEADER === */
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 3px dashed #4a90e2;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .header h1 {
+        font-size: 1.9rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #1e3c72, #4a90e2, #f5c542);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.5px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .header h1 span {
+        font-size: 2.2rem;
+    }
+
+    .badge {
+        background: #f5c542;
+        color: #1e3c72;
+        padding: 8px 18px;
+        border-radius: 30px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 10px rgba(245, 197, 66, 0.4);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    /* === NAVIGASI TAB === */
+    .nav-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 25px;
+        background: rgba(255, 255, 255, 0.6);
+        padding: 8px;
+        border-radius: 60px;
+        box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .nav-tabs button {
+        flex: 1 0 auto;
+        padding: 12px 18px;
+        border: none;
+        background: transparent;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #2c3e50;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-width: 100px;
+    }
+
+    .nav-tabs button:hover {
+        background: rgba(74, 144, 226, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .nav-tabs button.active {
+        background: linear-gradient(135deg, #4a90e2, #357abd);
+        color: white;
+        box-shadow: 0 8px 16px rgba(74, 144, 226, 0.4);
+        transform: translateY(-2px);
+    }
+
+    .nav-tabs button.quiz-tab.active {
+        background: linear-gradient(135deg, #f5c542, #d4a017);
+        color: #1e3c72;
+        box-shadow: 0 8px 16px rgba(245, 197, 66, 0.5);
+    }
+
+    /* === KONTEN TAB === */
+    .tab-content {
+        display: none;
+        animation: fadeIn 0.5s ease;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* === KARTU === */
+    .card {
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 24px;
+        padding: 25px 28px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(255, 255, 255, 0.8);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-left: 6px solid #4a90e2;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 15px 30px rgba(74, 144, 226, 0.15);
+    }
+
+    .card.yellow-accent {
+        border-left-color: #f5c542;
+    }
+
+    .card h2 {
+        font-size: 1.5rem;
+        color: #1e3c72;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .card h2 .icon {
+        font-size: 1.8rem;
+    }
+
+    .card h3 {
+        font-size: 1.2rem;
+        color: #2c3e50;
+        margin: 18px 0 10px 0;
+        padding-bottom: 5px;
+        border-bottom: 2px solid rgba(74, 144, 226, 0.2);
+    }
+
+    .card p, .card li {
+        color: #2c3e50;
+        line-height: 1.7;
+        font-size: 1rem;
+    }
+
+    .card ul, .card ol {
+        padding-left: 25px;
+        margin: 10px 0;
+    }
+
+    .card li {
+        margin-bottom: 8px;
+    }
+
+    .highlight {
+        background: linear-gradient(120deg, #f5c542 0%, #f5c542 40%, transparent 60%);
+        background-repeat: no-repeat;
+        background-size: 100% 40%;
+        background-position: 0 88%;
+        font-weight: 600;
+        padding: 0 4px;
+    }
+
+    .highlight-blue {
+        background: linear-gradient(120deg, #4a90e2 0%, #4a90e2 40%, transparent 60%);
+        background-repeat: no-repeat;
+        background-size: 100% 40%;
+        background-position: 0 88%;
+        font-weight: 600;
+        padding: 0 4px;
+    }
+
+    /* === KODE === */
+    pre {
+        background: #1e2a3a;
+        color: #e6f0ff;
+        padding: 18px 22px;
+        border-radius: 18px;
+        overflow-x: auto;
+        font-family: 'Fira Code', 'Consolas', monospace;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin: 15px 0;
+        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+        border: 1px solid #4a90e2;
+        position: relative;
+    }
+
+    pre::before {
+        content: 'Python';
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: #4a90e2;
+        color: white;
+        padding: 4px 14px;
+        border-radius: 0 18px 0 12px;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+
+    code {
+        font-family: 'Fira Code', 'Consolas', monospace;
+    }
+
+    .code-inline {
+        background: #eef4ff;
+        color: #1e3c72;
+        padding: 2px 8px;
+        border-radius: 8px;
+        font-family: 'Fira Code', monospace;
+        font-size: 0.9rem;
+        border: 1px solid #cddfff;
+    }
+
+    /* === TABEL === */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    th {
+        background: linear-gradient(135deg, #1e3c72, #4a90e2);
+        color: white;
+        padding: 12px 15px;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    td {
+        padding: 11px 15px;
+        border-bottom: 1px solid #e6f0ff;
+        color: #2c3e50;
+    }
+
+    tr:nth-child(even) {
+        background: rgba(74, 144, 226, 0.04);
+    }
+
+    tr:hover {
+        background: rgba(245, 197, 66, 0.1);
+    }
+
+    /* === ANIMASI === */
+    .slide-in {
+        animation: slideIn 0.5s ease forwards;
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateX(-20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* === STEPPER VISUAL === */
+    .stepper {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin: 20px 0;
+    }
+
+    .step-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 14px 18px;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 16px;
+        border: 1px solid rgba(74, 144, 226, 0.2);
+        transition: all 0.3s ease;
+        animation: slideIn 0.5s ease forwards;
+        opacity: 0;
+    }
+
+    .step-item:nth-child(1) { animation-delay: 0.1s; }
+    .step-item:nth-child(2) { animation-delay: 0.2s; }
+    .step-item:nth-child(3) { animation-delay: 0.3s; }
+    .step-item:nth-child(4) { animation-delay: 0.4s; }
+    .step-item:nth-child(5) { animation-delay: 0.5s; }
+
+    .step-item:hover {
+        background: rgba(74, 144, 226, 0.08);
+        transform: translateX(8px);
+        border-color: #4a90e2;
+    }
+
+    .step-number {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #4a90e2, #1e3c72);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+        box-shadow: 0 4px 8px rgba(74, 144, 226, 0.3);
+    }
+
+    .step-item.yellow .step-number {
+        background: linear-gradient(135deg, #f5c542, #d4a017);
+        box-shadow: 0 4px 8px rgba(245, 197, 66, 0.4);
+    }
+
+    /* ============================================ */
+    /* === QUIZ SECTION === */
+    /* ============================================ */
+    .quiz-wrapper {
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 28px;
+        padding: 30px 32px;
+        box-shadow: 0 10px 30px rgba(74, 144, 226, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.8);
+        border-top: 6px solid #f5c542;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .quiz-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px dashed rgba(74, 144, 226, 0.3);
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .quiz-header h2 {
+        font-size: 1.5rem;
+        color: #1e3c72;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .score-display {
+        background: linear-gradient(135deg, #4a90e2, #1e3c72);
+        color: white;
+        padding: 8px 18px;
+        border-radius: 30px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        box-shadow: 0 4px 10px rgba(74, 144, 226, 0.4);
+        animation: pulse 2s infinite;
+    }
+
+    /* === PROGRESS BAR === */
+    .progress-container {
+        width: 100%;
+        height: 10px;
+        background: rgba(74, 144, 226, 0.15);
+        border-radius: 10px;
+        margin-bottom: 25px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #4a90e2, #f5c542);
+        border-radius: 10px;
+        transition: width 0.5s ease;
+        box-shadow: 0 0 10px rgba(245, 197, 66, 0.5);
+    }
+
+    /* === QUESTION === */
+    .question-box {
+        margin-bottom: 25px;
+        animation: slideIn 0.5s ease;
+    }
+
+    .question-number {
+        display: inline-block;
+        background: #f5c542;
+        color: #1e3c72;
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        margin-bottom: 10px;
+        animation: bounceIn 0.6s ease;
+    }
+
+    @keyframes bounceIn {
+        0% { transform: scale(0); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+
+    .question-text {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #1e3c72;
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+
+    /* === OPTIONS === */
+    .options {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .option-btn {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 14px 20px;
+        background: rgba(255, 255, 255, 0.7);
+        border: 2px solid rgba(74, 144, 226, 0.2);
+        border-radius: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: left;
+        font-size: 1rem;
+        color: #2c3e50;
+        position: relative;
+        overflow: hidden;
+        animation: slideInRight 0.4s ease backwards;
+    }
+
+    .option-btn:nth-child(1) { animation-delay: 0.05s; }
+    .option-btn:nth-child(2) { animation-delay: 0.1s; }
+    .option-btn:nth-child(3) { animation-delay: 0.15s; }
+    .option-btn:nth-child(4) { animation-delay: 0.2s; }
+    .option-btn:nth-child(5) { animation-delay: 0.25s; }
+
+    @keyframes slideInRight {
+        from { opacity: 0; transform: translateX(30px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    .option-btn:hover:not(:disabled) {
+        background: rgba(74, 144, 226, 0.1);
+        border-color: #4a90e2;
+        transform: translateX(8px);
+        box-shadow: 0 5px 15px rgba(74, 144, 226, 0.2);
+    }
+
+    .option-btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.85;
+    }
+
+    .option-label {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #4a90e2, #1e3c72);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1rem;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+    }
+
+    .option-btn.correct {
+        background: rgba(46, 204, 113, 0.15);
+        border-color: #2ecc71;
+        animation: correctPulse 0.6s ease;
+    }
+
+    .option-btn.correct .option-label {
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+    }
+
+    .option-btn.wrong {
+        background: rgba(231, 76, 60, 0.15);
+        border-color: #e74c3c;
+        animation: shake 0.5s ease;
+    }
+
+    .option-btn.wrong .option-label {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+    }
+
+    @keyframes correctPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.03); box-shadow: 0 0 20px rgba(46, 204, 113, 0.5); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-8px); }
+        75% { transform: translateX(8px); }
+    }
+
+    /* === FEEDBACK === */
+    .feedback {
+        margin-top: 20px;
+        padding: 15px 20px;
+        border-radius: 16px;
+        font-weight: 500;
+        display: none;
+        animation: fadeIn 0.5s ease;
+        line-height: 1.6;
+    }
+
+    .feedback.show {
+        display: block;
+    }
+
+    .feedback.correct-fb {
+        background: rgba(46, 204, 113, 0.15);
+        border-left: 5px solid #2ecc71;
+        color: #1e7e34;
+    }
+
+    .feedback.wrong-fb {
+        background: rgba(231, 76, 60, 0.15);
+        border-left: 5px solid #e74c3c;
+        color: #a93226;
+    }
+
+    /* === NEXT BUTTON === */
+    .next-btn {
+        display: none;
+        margin-top: 20px;
+        padding: 14px 40px;
+        background: linear-gradient(135deg, #4a90e2, #1e3c72);
+        color: white;
+        border: none;
+        border-radius: 40px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
+        animation: fadeInUp 0.5s ease;
+    }
+
+    .next-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 25px rgba(74, 144, 226, 0.5);
+    }
+
+    .next-btn.show {
+        display: inline-block;
+    }
+
+    /* === RESULT SCREEN === */
+    .result-screen {
+        display: none;
+        text-align: center;
+        padding: 20px 0;
+        animation: fadeInUp 0.6s ease;
+    }
+
+    .result-screen.show {
+        display: block;
+    }
+
+    .result-screen h2 {
+        font-size: 2rem;
+        background: linear-gradient(135deg, #1e3c72, #4a90e2, #f5c542);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 15px;
+    }
+
+    .result-score {
+        font-size: 4rem;
+        font-weight: 900;
+        color: #4a90e2;
+        margin: 20px 0;
+        animation: bounceIn 0.8s ease;
+        text-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
+    }
+
+    .result-message {
+        font-size: 1.1rem;
+        color: #2c3e50;
+        margin-bottom: 25px;
+        line-height: 1.6;
+    }
+
+    .restart-btn {
+        padding: 14px 40px;
+        background: linear-gradient(135deg, #f5c542, #d4a017);
+        color: #1e3c72;
+        border: none;
+        border-radius: 40px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 20px rgba(245, 197, 66, 0.4);
+    }
+
+    .restart-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 25px rgba(245, 197, 66, 0.6);
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 768px) {
+        .app-container {
+            padding: 20px;
+            border-radius: 28px;
+        }
+        .header h1 {
+            font-size: 1.4rem;
+        }
+        .nav-tabs button {
+            font-size: 0.8rem;
+            padding: 10px 12px;
+            min-width: 80px;
+        }
+        .card {
+            padding: 18px;
+        }
+        .card h2 {
+            font-size: 1.2rem;
+        }
+        table {
+            font-size: 0.85rem;
+        }
+        th, td {
+            padding: 8px 10px;
+        }
+        .quiz-wrapper {
+            padding: 20px;
+        }
+        .quiz-header h2 {
+            font-size: 1.2rem;
+        }
+        .question-text {
+            font-size: 1rem;
+        }
+        .option-btn {
+            padding: 12px 15px;
+            font-size: 0.9rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .app-container {
+            padding: 15px;
+            border-radius: 20px;
+        }
+        .nav-tabs {
+            flex-direction: column;
+            border-radius: 20px;
+        }
+        .nav-tabs button {
+            width: 100%;
+        }
+        .header h1 {
+            font-size: 1.1rem;
+        }
+        .badge {
+            font-size: 0.7rem;
+            padding: 5px 12px;
+        }
+        .result-score {
+            font-size: 3rem;
+        }
+    }
+
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #4a90e2;
+        border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #1e3c72;
+    }
+</style>
+</head>
+<body>
+
+<!-- BACKGROUND ANIME -->
+<div class="bg-anime">
+    <div class="circle"></div>
+    <div class="circle"></div>
+    <div class="circle"></div>
+    <div class="circle"></div>
+</div>
+
+<div class="app-container">
+    <!-- HEADER -->
+    <header class="header">
+        <h1>
+            <span>🧠</span> Strategi Algoritmik: Greedy
+        </h1>
+        <div class="badge">⚡ Berpikir Komputasional</div>
+    </header>
+
+    <!-- NAVIGASI -->
+    <nav class="nav-tabs" id="navTabs">
+        <button class="active" data-tab="pengantar">📘 Pengantar</button>
+        <button data-tab="konsep">💡 Konsep</button>
+        <button data-tab="studi-kasus">📊 Studi Kasus</button>
+        <button data-tab="knapsack">🎒 Knapsack</button>
+        <button data-tab="dp">🧩 DP</button>
+        <button data-tab="latihan">✏️ Latihan</button>
+        <button class="quiz-tab" data-tab="quiz">🎯 Quiz</button>
+    </nav>
+
+    <!-- ================= TAB PENGANTAR ================= -->
+    <div class="tab-content active" id="pengantar">
+        <div class="card">
+            <h2><span class="icon">📌</span> Apa itu Algoritma Greedy?</h2>
+            <p>
+                <span class="highlight">Algoritma greedy</span> adalah metode yang mencari solusi terbaik secara 
+                <strong>lokal</strong> pada setiap tahapan, dengan harapan solusi lokal tersebut akan menghasilkan 
+                solusi optimal <strong>global</strong>. Metode ini bekerja secara bertahap, membuat pilihan terbaik 
+                saat itu juga tanpa mempertimbangkan konsekuensi di masa depan.
+            </p>
+            <p style="margin-top: 12px;">
+                Algoritma ini sering digunakan untuk memecahkan persoalan optimasi, baik itu 
+                <strong>maksimasi</strong> (mencari nilai terbesar) maupun <strong>minimasi</strong> (mencari nilai terkecil).
+            </p>
+        </div>
+
+        <div class="card yellow-accent">
+            <h2><span class="icon">🎯</span> Memahami Persoalan Optimasi</h2>
+            <p>Persoalan optimasi adalah tantangan untuk menemukan solusi terbaik dari semua kemungkinan solusi yang ada. Ada dua jenis utama:</p>
+            <ul>
+                <li><strong>Maksimasi (Maximization):</strong> Mencari solusi dengan nilai terbesar. Contoh: rute terpendek untuk pengiriman paket, kombinasi barang dengan keuntungan maksimal.</li>
+                <li><strong>Minimasi (Minimization):</strong> Mencari solusi dengan nilai terkecil. Contoh: jalur terpendek antar kota, jadwal produksi dengan biaya operasional minimum.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2><span class="icon">⚙️</span> Bagaimana Algoritma Greedy Bekerja?</h2>
+            <p>
+                Bayangkan Anda sedang mendaki gunung dan ingin mencapai puncak secepat mungkin. 
+                Algoritma greedy akan menyarankan Anda untuk mengambil langkah yang membuat Anda 
+                <span class="highlight-blue">naik paling tinggi pada setiap langkahnya</span>, tanpa memikirkan jalur keseluruhan.
+            </p>
+            <div class="stepper">
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <div><strong>Pilih Kandidat:</strong> Tentukan himpunan kandidat (pilihan yang bisa diambil).</div>
+                </div>
+                <div class="step-item yellow">
+                    <div class="step-number">2</div>
+                    <div><strong>Pilih Solusi:</strong> Ambil kandidat terbaik dari himpunan tersebut.</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <div><strong>Periksa Kelayakan:</strong> Pastikan pilihan tidak melanggar aturan yang ada.</div>
+                </div>
+                <div class="step-item yellow">
+                    <div class="step-number">4</div>
+                    <div><strong>Periksa Solusi:</strong> Jika sudah membentuk solusi, berhenti. Jika belum, ulangi.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card yellow-accent">
+            <h2><span class="icon">⚖️</span> Kelebihan & Kekurangan</h2>
+            <h3>✅ Kelebihan</h3>
+            <ul>
+                <li><strong>Sederhana dan Cepat:</strong> Mudah dipahami dan diimplementasikan.</li>
+                <li><strong>Efisiensi:</strong> Biasanya memiliki kompleksitas waktu yang rendah.</li>
+            </ul>
+            <h3>❌ Kekurangan</h3>
+            <ul>
+                <li><strong>Tidak Selalu Optimal:</strong> Tidak selalu memberikan solusi terbaik untuk semua masalah.</li>
+                <li><strong>Hanya Bekerja pada Masalah Tertentu:</strong> Efektif hanya untuk masalah dengan "sifat greedy".</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ================= TAB KONSEP ================= -->
+    <div class="tab-content" id="konsep">
+        <div class="card">
+            <h2><span class="icon">💡</span> Prinsip Dasar Greedy</h2>
+            <p>
+                Prinsip greedy yang paling terkenal adalah: <span class="highlight">"Take what you can get now!"</span> 
+                (Ambil apa yang bisa kamu dapatkan sekarang!). Algoritma greedy membentuk solusi langkah per langkah (step by step).
+            </p>
+            <p style="margin-top: 10px;">
+                Pada setiap langkah, terdapat banyak pilihan yang perlu dievaluasi. Oleh karena itu, 
+                pada setiap langkah harus dibuat keputusan yang terbaik dalam menentukan pilihan.
+            </p>
+        </div>
+
+        <div class="card yellow-accent">
+            <h2><span class="icon">📜</span> Pseudocode Algoritma Greedy</h2>
+            <p>Berikut adalah contoh pseudocode untuk masalah pertukaran uang (Coin Exchange):</p>
+            <pre><code>function CoinExchange(input C : himpunan_koin, A : integer) → himpunan_koin
+{ mengembalikan koin-koin yang total nilainya = A, 
+  tetapi jumlah koinnya minimum }
+
+Deklarasi
+  S : himpunan_koin
+  x : koin
+
+Algoritma
+  S ← { }
+  while (∑(nilai semua koin di dalam S) ≠ A) and (C ≠ { } ) do
+    x ← koin yang mempunyai nilai terbesar
+    C ← C - {x}
+    if (∑(nilai semua koin di dalam S) + nilai koin x ≤ A) then
+      S ← S ∪ {x}
+    endif
+  endwhile
+  if (∑(nilai semua koin di dalam S) = A) then
+    return S
+  else
+    write('tidak ada solusi')
+  endif</code></pre>
+            <p style="margin-top: 10px;">
+                Algoritma ini bekerja dengan pendekatan "ambil yang terbaik sekarang", yaitu selalu memilih 
+                koin dengan nilai terbesar yang masih mungkin digunakan.
+            </p>
+        </div>
+
+        <div class="card">
+            <h2><span class="icon">🔍</span> Penjelasan Algoritma Coin Exchange</h2>
+            <div class="stepper">
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <div><strong>Inisialisasi:</strong> <code class="code-inline">S ← {}</code> menyiapkan himpunan kosong untuk solusi.</div>
+                </div>
+                <div class="step-item yellow">
+                    <div class="step-number">2</div>
+                    <div><strong>Loop While:</strong> Selama total nilai di S belum sama dengan A dan masih ada koin di C.</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <div><strong>Pilih Koin Terbesar:</strong> <code class="code-inline">x ← koin terbesar</code> dari himpunan C.</div>
+                </div>
+                <div class="step-item yellow">
+                    <div class="step-number">4</div>
+                    <div><strong>Hapus dari Kandidat:</strong> <code class="code-inline">C ← C - {x}</code> agar tidak dipilih lagi.</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">5</div>
+                    <div><strong>Cek Kelayakan:</strong> Jika ditambahkan tidak melebihi A, masukkan ke S.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= TAB STUDI KASUS ================= -->
+    <div class="tab-content" id="studi-kasus">
+        <div class="card">
+            <h2><span class="icon">💰</span> Studi Kasus 1: Pengembalian Uang</h2>
+            <p><strong>Masalah:</strong> Mengembalikan uang Rp38.000 dengan pecahan {Rp20.000, Rp10.000, Rp5.000, Rp2.000, Rp1.000}.</p>
+            <h3>Langkah Penyelesaian:</h3>
+            <div class="stepper">
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <div>Ambil Rp20.000. Sisa: Rp18.000.</div>
+                </div>
+                <div class="step-item yellow">
+                    <div class="step-number">2</div>
+                    <div>Ambil Rp10.000. Sisa: Rp8.000.</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <div>Ambil Rp5.000. Sisa: Rp3.000.</div>
+                </div>
+                <div class="step-item yellow">
+                    <div class="step-number">4</div>
+                    <div>Ambil Rp2.000. Sisa: Rp1.000.</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">5</div>
+                    <div>Ambil Rp1.000. Sisa: Rp0.</div>
+                </div>
+            </div>
+            <p style="margin-top: 15px;">
+                <strong>Hasil:</strong> Solusi optimal didapatkan dengan total <span class="highlight">5 lembar uang</span>.
+            </p>
+        </div>
+
+        <div class="card yellow-accent">
+            <h2><span class="icon">📅</span> Studi Kasus 2: Jadwal Kegiatan</h2>
+            <p><strong>Soal:</strong> Tentukan jumlah maksimum kegiatan yang bisa diikuti tanpa bentrok.</p>
+            <table>
+                <tr><th>Kegiatan</th><th>Waktu</th></tr>
+                <tr><td>A</td><td>09.00 - 11.00</td></tr>
+                <tr><td>B</td><td>10.00 - 12.00</td></tr>
+                <tr><td>C</td><td>11.30 - 12.30</td></tr>
+                <tr><td>D</td><td>13.00 - 14.00</td></tr>
+            </table>
+            <h3>Penyelesaian Greedy:</h3>
+            <ol>
+                <li>Urutkan berdasarkan waktu selesai paling awal: A (11.00), C (12.30), B (12.00), D (14.00).</li>
+                <li>Pilih A (09.00 - 11.00). Waktu selesai: 11.00.</li>
+                <li>Cari kegiatan dengan waktu mulai ≥ 11.00: C (11.30 - 12.30) dipilih.</li>
+                <li>Cari lagi: D (13.00 - 14.00) dipilih karena 13.00 ≥ 12.30.</li>
+            </ol>
+            <p><strong>Hasil:</strong> Maksimum <span class="highlight">3 kegiatan</span> (A, C, D).</p>
+        </div>
+
+        <div class="card">
+            <h2><span class="icon">🐟</span> Studi Kasus 3: Membawa Ikan</h2>
+            <p><strong>Soal:</strong> Budi ingin membawa ikan dalam 8 kantong (3, 5, 2, 8, 4, 6, 6, 3). Mobil hanya mampu membawa 4 kantong. Kantong mana yang harus dibawa agar jumlah ikan maksimal?</p>
+            <h3>Penyelesaian Greedy:</h3>
+            <ol>
+                <li>Urutkan dari terbesar ke terkecil: 8, 6, 6, 5, 4, 3, 3, 2.</li>
+                <li>Ambil 4 kantong teratas: 8, 6, 6, 5.</li>
+                <li>Total: 8 + 6 + 6 + 5 = <span class="highlight">25 ekor ikan</span>.</li>
+            </ol>
+            <p style="margin-top: 10px;">
+                <strong>Jika harus membawa sedikitnya 15 ekor ikan:</strong> Ambil 8 + 6 + 6 = 20 ekor (3 kantong). 
+                Jadi, jumlah kantong terkecil adalah <span class="highlight">3 kantong</span>.
+            </p>
+        </div>
+
+        <div class="card yellow-accent">
+            <h2><span class="icon">📚</span> Studi Kasus 4: PR Cici</h2>
+            <p><strong>Soal:</strong> Cici punya 10 PR dengan waktu pengerjaan berbeda. Waktu total 8 jam. Tentukan PR mana yang harus dikerjakan untuk mendapatkan nilai maksimal (setiap PR bernilai sama).</p>
+            <table>
+                <tr><th>PR</th><th>Waktu (jam)</th></tr>
+                <tr><td>D</td><td>0.5</td></tr>
+                <tr><td>I</td><td>0.5</td></tr>
+                <tr><td>C</td><td>1</td></tr>
+                <tr><td>F</td><td>1</td></tr>
+                <tr><td>H</td><td>1</td></tr>
+                <tr><td>A</td><td>1.5</td></tr>
+                <tr><td>J</td><td>2</td></tr>
+                <tr><td>G</td><td>2.5</td></tr>
+                <tr><td>B</td><td>3</td></tr>
+                <tr><td>E</td><td>4</td></tr>
+            </table>
+            <h3>Strategi Greedy:</h3>
+            <p>Kerjakan PR dengan waktu pengerjaan paling singkat terlebih dahulu.</p>
+            <p><strong>Hasil:</strong> D (0.5) + I (0.5) + C (1) + F (1) + H (1) + A (1.5) + J (2) = <span class="highlight">7.5 jam</span>, menyelesaikan <span class="highlight">7 PR</span>.</p>
+        </div>
+    </div>
+
+    <!-- ================= TAB KNAPSACK ================= -->
+    <div class="tab-content" id="knapsack">
+        <div class="card">
+            <h2><span class="icon">🎒</span> Algoritma Greedy Knapsack</h2>
+            <p>
+                Algoritma Greedy Knapsack adalah cara untuk menyelesaikan masalah <strong>Knapsack</strong> (ransel). 
+                Masalah ini bertujuan memilih item-item untuk dimasukkan ke dalam ransel dengan kapasitas terbatas, 
+                sehingga total nilai (value) dari item-item tersebut menjadi maksimal.
+            </p>
+            <h3>Dua Jenis Utama:</h3>
+            <ul>
+                <li><strong>0/1 Knapsack:</strong> Harus memilih seluruh item atau tidak sama sekali.</li>
+                <li><strong>Fractional Knapsack:</strong> Bisa mengambil sebagian dari suatu item.</li>
+            </ul>
+            <p style="margin-top: 10px;">
+                <span class="highlight-blue">Algoritma Greedy</span> hanya memberikan solusi optimal untuk 
+                <strong>Fractional Knapsack</strong>. Untuk 0/1 Knapsack, algoritma ini tidak selalu menghasilkan solusi terbaik.
+            </p>
+        </div>
+
+        <div class="card yellow-accent">
+            <h2><span class="icon">📐</span> Langkah-langkah Greedy Knapsack</h2>
+            <div class="stepper">
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <div>Hitung rasio nilai per berat (value-per-weight ratio) untuk setiap item.</div>
+                </div>
+                <div class="step-item yellow">
+                    <div class="step-number">2</div>
+                    <div>Urutkan item berdasarkan rasio tertinggi ke terendah.</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <div>Masukkan item ke ransel satu per satu, dimulai dari rasio tertinggi, sampai ransel penuh.</div>
+                </div>
+                <div class="step-item yellow">
+                    <div class="step-number">4</div>
+                    <div>Jika item terakhir tidak bisa dimasukkan sepenuhnya, masukkan sebagian item tersebut.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><span class="icon">📝</span> Contoh Soal Fractional Knapsack</h2>
+            <p><strong>Kapasitas ransel maksimum:</strong> 15 kg</p>
+            <table>
+                <tr><th>Item</th><th>Berat (kg)</th><th>Nilai (juta)</th><th>Rasio (Nilai/Berat)</th></tr>
+                <tr><td>A</td><td>2</td><td>20</td><td>10</td></tr>
+                <tr><td>B</td><td>3</td><td>15</td><td>5</td></tr>
+                <tr><td>C</td><td>5</td><td>50</td><td>10</td></tr>
+                <tr><td>D</td><td>6</td><td>30</td><td>5</td></tr>
+            </table>
+            <h3>Langkah Penyelesaian:</h3>
+            <ol>
+                <li>Urutkan berdasarkan rasio: A (10), C (10), B (5), D (5).</li>
+                <li>Ambil A (2 kg) → sisa 13 kg, total nilai 20 juta.</li>
+                <li>Ambil C (5 kg) → sisa 8 kg, total nilai 70 juta.</li>
+                <li>Ambil B (3 kg) → sisa 5 kg, total nilai 85 juta.</li>
+                <li>Item D berat 6 kg, sisa 5 kg → ambil sebagian: (5/6) × 30 = 25 juta.</li>
+            </ol>
+            <p><strong>Total nilai maksimum:</strong> <span class="highlight">Rp 110 juta</span>.</p>
+        </div>
+    </div>
+
+    <!-- ================= TAB DP ================= -->
+    <div class="tab-content" id="dp">
+        <div class="card">
+            <h2><span class="icon">🧩</span> Apa itu Dynamic Programming (DP)?</h2>
+            <p>
+                Dynamic Programming adalah metode untuk memecahkan masalah kompleks dengan memecahnya 
+                menjadi sub-masalah yang lebih kecil. Metode ini paling cocok untuk masalah optimasi 
+                di mana solusi terbaik saat ini belum tentu mengarah pada solusi terbaik secara keseluruhan.
+            </p>
+        </div>
+
+        <div class="card yellow-accent">
+            <h2><span class="icon">🔑</span> Dua Unsur Utama DP</h2>
+            <div class="stepper">
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <div><strong>Struktur Masalah Optimal:</strong> Masalah besar dapat dipecah menjadi sub-masalah yang lebih kecil. Solusi optimal dari masalah besar adalah kombinasi dari solusi optimal sub-masalahnya.</div>
+                </div>
+                <div class="step-item yellow">
+                    <div class="step-number">2</div>
+                    <div><strong>Sub-masalah Tumpang Tindih (Overlapping Subproblems):</strong> Sub-masalah yang sama sering muncul berulang. Solusinya disimpan untuk menghindari perhitungan ulang (memoization).</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><span class="icon">⚖️</span> Perbedaan dengan Algoritma Greedy</h2>
+            <table>
+                <tr><th>Aspek</th><th>Greedy</th><th>Dynamic Programming</th></tr>
+                <tr><td>Pengambilan Keputusan</td><td>Pilihan terbaik di setiap langkah, tanpa melihat ke depan.</td><td>Mempertimbangkan semua kemungkinan pilihan dan dampaknya.</td></tr>
+                <tr><td>Optimalitas</td><td>Tidak selalu optimal.</td><td>Selalu menjamin solusi optimal.</td></tr>
+                <tr><td>Efisiensi</td><td>Lebih cepat dan sederhana.</td><td>Lebih kompleks, tetapi menyimpan hasil sub-masalah.</td></tr>
+            </table>
+        </div>
+
+        <div class="card yellow-accent">
+            <h2><span class="icon">🌶️</span> Contoh Soal DP: Memetik Cabai</h2>
+            <p><strong>Masalah:</strong> Agria ingin memetik cabai dari kebun 4x5. Ia mulai dari kolom paling kiri, bergerak ke kanan atau ke bawah, dan berhenti di kolom paling kanan. Tujuannya memetik cabai sebanyak mungkin.</p>
+            <h3>Matriks Kebun:</h3>
+            <table>
+                <tr><td>10</td><td>2</td><td>10</td><td>10</td><td>5</td></tr>
+                <tr><td>5</td><td>3</td><td>6</td><td>5</td><td>0</td></tr>
+                <tr><td>0</td><td>4</td><td>0</td><td>2</td><td>3</td></tr>
+                <tr><td>20</td><td>5</td><td>1</td><td>0</td><td>0</td></tr>
+            </table>
+            <h3>Rumus Rekursif:</h3>
+            <p><code class="code-inline">DP[i][j] = cabai[i][j] + max(DP[i-1][j], DP[i][j-1])</code></p>
+            <p><strong>Hasil akhir:</strong> Nilai maksimum di kolom terakhir adalah <span class="highlight">42</span>.</p>
+        </div>
+    </div>
+
+    <!-- ================= TAB LATIHAN ================= -->
+    <div class="tab-content" id="latihan">
+        <div class="card">
+            <h2><span class="icon">✏️</span> Latihan Soal</h2>
+            <p>Uji pemahaman Anda tentang Algoritma Greedy dengan soal-soal berikut:</p>
+            
+            <h3>Soal 1: Menara Hanoi</h3>
+            <p>Budi memiliki 6 panekuk yang harus dipindahkan dari piring A ke piring C menggunakan piring B sebagai bantuan. Berapa jumlah langkah minimal yang diperlukan?</p>
+            <p><em>Petunjuk: Gunakan rumus 2<sup>N</sup> - 1.</em></p>
+            <details style="margin-top: 10px; padding: 10px; background: #f0f7ff; border-radius: 12px; cursor: pointer;">
+                <summary style="font-weight: 600; color: #1e3c72;">Lihat Jawaban</summary>
+                <p style="margin-top: 8px;">Langkah = 2<sup>6</sup> - 1 = 64 - 1 = <strong>63 langkah</strong>.</p>
+            </details>
+
+            <h3 style="margin-top: 25px;">Soal 2: Barisan Rekursif</h3>
+            <p>Diketahui barisan c<sub>0</sub>, c<sub>1</sub>, c<sub>2</sub>, ... didefinisikan secara rekursif:</p>
+            <p><code class="code-inline">c<sub>k</sub> = (c<sub>k-1</sub> + k)(c<sub>k-2</sub> + 1)</code> untuk k ≥ 2, dengan c<sub>0</sub> = 1 dan c<sub>1</sub> = 2.</p>
+            <p>Hitunglah nilai c<sub>5</sub>!</p>
+            <details style="margin-top: 10px; padding: 10px; background: #f0f7ff; border-radius: 12px; cursor: pointer;">
+                <summary style="font-weight: 600; color: #1e3c72;">Lihat Jawaban</summary>
+                <p style="margin-top: 8px;">
+                    c<sub>2</sub> = (c<sub>1</sub> + 2)(c<sub>0</sub> + 1) = (2+2)(1+1) = 4 × 2 = 8<br>
+                    c<sub>3</sub> = (c<sub>2</sub> + 3)(c<sub>1</sub> + 1) = (8+3)(2+1) = 11 × 3 = 33<br>
+                    c<sub>4</sub> = (c<sub>3</sub> + 4)(c<sub>2</sub> + 1) = (33+4)(8+1) = 37 × 9 = 333<br>
+                    c<sub>5</sub> = (c<sub>4</sub> + 5)(c<sub>3</sub> + 1) = (333+5)(33+1) = 338 × 34 = <strong>11.492</strong>
+                </p>
+            </details>
+
+            <h3 style="margin-top: 25px;">Soal 3: Keramik Lantai</h3>
+            <p>Terdapat lantai berukuran 2×N. Ingin dipasang N buah keramik berukuran 1×2. Setiap keramik dapat dipasang horizontal atau vertikal. Tentukan ada berapa cara memasang keramik untuk N=8!</p>
+            <details style="margin-top: 10px; padding: 10px; background: #f0f7ff; border-radius: 12px; cursor: pointer;">
+                <summary style="font-weight: 600; color: #1e3c72;">Lihat Jawaban</summary>
+                <p style="margin-top: 8px;">
+                    Pola ini mengikuti barisan Fibonacci dengan C(N) = C(N-1) + C(N-2):<br>
+                    C(1)=1, C(2)=2, C(3)=3, C(4)=5, C(5)=8, C(6)=13, C(7)=21, C(8)=<strong>34 cara</strong>.
+                </p>
+            </details>
+
+            <h3 style="margin-top: 25px;">Soal 4: Greedy Coin Exchange</h3>
+            <p>Kembalikan uang Rp27.000 dengan pecahan {Rp20.000, Rp10.000, Rp5.000, Rp2.000, Rp1.000}. Berapa jumlah koin/lembar minimal?</p>
+            <details style="margin-top: 10px; padding: 10px; background: #f0f7ff; border-radius: 12px; cursor: pointer;">
+                <summary style="font-weight: 600; color: #1e3c72;">Lihat Jawaban</summary>
+                <p style="margin-top: 8px;">
+                    Rp20.000 (1 lembar) + Rp5.000 (1 lembar) + Rp2.000 (1 lembar) = <strong>3 lembar</strong>.
+                </p>
+            </details>
+        </div>
+
+        <div class="card yellow-accent">
+            <h2><span class="icon">🏆</span> Tips Mengerjakan Soal Greedy</h2>
+            <ul>
+                <li>Identifikasi apakah masalah termasuk optimasi (maksimasi/minimasi).</li>
+                <li>Tentukan kriteria "terbaik" untuk setiap langkah (misal: nilai terbesar, rasio tertinggi, waktu terpendek).</li>
+                <li>Urutkan data berdasarkan kriteria tersebut.</li>
+                <li>Ambil pilihan terbaik satu per satu, pastikan tidak melanggar batasan.</li>
+                <li>Periksa apakah solusi sudah optimal atau perlu pendekatan lain (DP).</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ================= TAB QUIZ ================= -->
+    <div class="tab-content" id="quiz">
+        <div class="quiz-wrapper">
+            <div class="quiz-header">
+                <h2>🎯 Quiz Algoritma Greedy</h2>
+                <div class="score-display" id="scoreDisplay">Skor: 0</div>
+            </div>
+
+            <!-- PROGRESS -->
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <!-- QUIZ AREA -->
+            <div id="quizArea">
+                <div class="question-box">
+                    <span class="question-number" id="questionNumber">Soal 1 dari 10</span>
+                    <div class="question-text" id="questionText"></div>
+                </div>
+
+                <div class="options" id="optionsContainer"></div>
+
+                <div class="feedback" id="feedback"></div>
+                <button class="next-btn" id="nextBtn">Soal Berikutnya →</button>
+            </div>
+
+            <!-- RESULT AREA -->
+            <div class="result-screen" id="resultScreen">
+                <h2>🎉 Quiz Selesai!</h2>
+                <div class="result-score" id="finalScore">0/10</div>
+                <div class="result-message" id="resultMessage"></div>
+                <button class="restart-btn" id="restartBtn">🔄 Ulangi Quiz</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // === NAVIGASI TAB ===
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabs = document.querySelectorAll('.nav-tabs button');
+        const contents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                tabs.forEach(t => t.classList.remove('active'));
+                contents.forEach(c => c.classList.remove('active'));
+
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab');
+                const targetContent = document.getElementById(tabId);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+
+        // === STEPPER OBSERVER ===
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateX(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.step-item').forEach(item => {
+            item.style.opacity = '0';
+            item.style.transform = 'translateX(-20px)';
+            item.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            observer.observe(item);
+        });
+
+        // === PARTIKEL BACKGROUND ===
+        const bgAnime = document.querySelector('.bg-anime');
+        for (let i = 0; i < 12; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 8 + 's';
+            particle.style.animationDuration = (6 + Math.random() * 6) + 's';
+            particle.style.width = (3 + Math.random() * 5) + 'px';
+            particle.style.height = particle.style.width;
+            particle.style.background = Math.random() > 0.5 ? '#f5c542' : '#4a90e2';
+            bgAnime.appendChild(particle);
+        }
+    });
+
+    // ===================================================
+    // === QUIZ LOGIC ===
+    // ===================================================
+    const questions = [
+        {
+            question: "Apa yang dimaksud dengan algoritma greedy?",
+            options: [
+                "Algoritma yang mencari solusi dengan mempertimbangkan semua kemungkinan",
+                "Algoritma yang mencari solusi terbaik secara lokal pada setiap tahapan",
+                "Algoritma yang selalu menghasilkan solusi optimal global",
+                "Algoritma yang bekerja mundur dari solusi akhir",
+                "Algoritma yang menggunakan rekursi tanpa henti"
+            ],
+            correct: 1,
+            explanation: "Algoritma greedy mencari solusi terbaik secara lokal pada setiap tahapan, dengan harapan solusi lokal tersebut menghasilkan solusi optimal global."
+        },
+        {
+            question: "Prinsip utama algoritma greedy yang paling terkenal adalah...",
+            options: [
+                "Divide and conquer",
+                "Take what you can get now!",
+                "Backtracking",
+                "Dynamic programming",
+                "Breadth-first search"
+            ],
+            correct: 1,
+            explanation: "Prinsip greedy adalah 'Take what you can get now!' yaitu mengambil apa yang bisa didapatkan sekarang tanpa memikirkan konsekuensi masa depan."
+        },
+        {
+            question: "Pada masalah pengembalian uang Rp38.000 dengan pecahan {20.000, 10.000, 5.000, 2.000, 1.000}, berapa jumlah lembar minimal yang dihasilkan algoritma greedy?",
+            options: [
+                "3 lembar",
+                "4 lembar",
+                "5 lembar",
+                "6 lembar",
+                "7 lembar"
+            ],
+            correct: 2,
+            explanation: "Greedy memilih: 20.000 + 10.000 + 5.000 + 2.000 + 1.000 = 5 lembar. Ini adalah solusi optimal."
+        },
+        {
+            question: "Dalam masalah Fractional Knapsack, langkah pertama algoritma greedy adalah...",
+            options: [
+                "Mengurutkan item berdasarkan berat terkecil",
+                "Menghitung rasio nilai per berat untuk setiap item",
+                "Memilih item dengan nilai terbesar",
+                "Memilih item dengan berat terbesar",
+                "Mengurutkan item berdasarkan nama"
+            ],
+            correct: 1,
+            explanation: "Langkah pertama adalah menghitung rasio nilai per berat (value-per-weight ratio), lalu mengurutkan dari rasio tertinggi."
+        },
+        {
+            question: "Berapa jumlah langkah minimal untuk memindahkan 6 panekuk pada Menara Hanoi?",
+            options: [
+                "31 langkah",
+                "32 langkah",
+                "63 langkah",
+                "64 langkah",
+                "127 langkah"
+            ],
+            correct: 2,
+            explanation: "Rumus Menara Hanoi adalah 2^N - 1. Untuk N=6: 2^6 - 1 = 64 - 1 = 63 langkah."
+        },
+        {
+            question: "Pada barisan Fibonacci, jika a1=1 dan a2=1, berapakah nilai a5?",
+            options: [
+                "3",
+                "5",
+                "8",
+                "13",
+                "21"
+            ],
+            correct: 1,
+            explanation: "a3 = a2 + a1 = 1+1=2, a4 = a3 + a2 = 2+1=3, a5 = a4 + a3 = 3+2=5."
+        },
+        {
+            question: "Apa perbedaan utama antara algoritma greedy dan dynamic programming?",
+            options: [
+                "Greedy selalu optimal, DP tidak",
+                "Greedy mempertimbangkan semua kemungkinan, DP tidak",
+                "Greedy membuat pilihan terbaik lokal, DP mempertimbangkan semua kemungkinan",
+                "Greedy menggunakan rekursi, DP tidak",
+                "Greedy lebih lambat dari DP"
+            ],
+            correct: 2,
+            explanation: "Greedy membuat pilihan terbaik pada setiap langkah tanpa melihat ke depan, sedangkan DP mempertimbangkan semua kemungkinan dan dampaknya."
+        },
+        {
+            question: "Pada masalah lantai 2×N dengan keramik 1×2, berapa cara memasang untuk N=4?",
+            options: [
+                "3 cara",
+                "4 cara",
+                "5 cara",
+                "6 cara",
+                "8 cara"
+            ],
+            correct: 2,
+            explanation: "Pola Fibonacci: C(1)=1, C(2)=2, C(3)=3, C(4)=5. Jadi ada 5 cara."
+        },
+        {
+            question: "Dalam contoh Fractional Knapsack dengan kapasitas 15 kg dan item A(2kg, 20jt), B(3kg, 15jt), C(5kg, 50jt), D(6kg, 30jt), berapa total nilai maksimum?",
+            options: [
+                "Rp 100 juta",
+                "Rp 105 juta",
+                "Rp 110 juta",
+                "Rp 115 juta",
+                "Rp 120 juta"
+            ],
+            correct: 2,
+            explanation: "Rasio: A=10, C=10, B=5, D=5. Ambil A(2kg), C(5kg), B(3kg), lalu sebagian D(5kg). Total = 20+50+15+25 = 110 juta."
+        },
+        {
+            question: "Pada contoh soal rekursif c_k = (c_{k-1} + k)(c_{k-2} + 1) dengan c0=1 dan c1=2, berapakah nilai c5?",
+            options: [
+                "1.492",
+                "2.492",
+                "11.492",
+                "12.492",
+                "21.492"
+            ],
+            correct: 2,
+            explanation: "c2=8, c3=33, c4=333, c5=(333+5)(33+1)=338×34=11.492."
+        }
+    ];
+
+    // === STATE ===
+    let currentQuestion = 0;
+    let score = 0;
+    let answered = false;
+    let quizInitialized = false;
+
+    // === ELEMEN ===
+    const questionNumberEl = document.getElementById('questionNumber');
+    const questionTextEl = document.getElementById('questionText');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const feedbackEl = document.getElementById('feedback');
+    const nextBtn = document.getElementById('nextBtn');
+    const progressBar = document.getElementById('progressBar');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const quizArea = document.getElementById('quizArea');
+    const resultScreen = document.getElementById('resultScreen');
+    const finalScore = document.getElementById('finalScore');
+    const resultMessage = document.getElementById('resultMessage');
+    const restartBtn = document.getElementById('restartBtn');
+
+    // === FUNGSI LOAD SOAL ===
+    function loadQuestion() {
+        answered = false;
+        const q = questions[currentQuestion];
+
+        questionNumberEl.textContent = `Soal ${currentQuestion + 1} dari ${questions.length}`;
+        
+        questionTextEl.textContent = q.question;
+        questionTextEl.style.animation = 'none';
+        void questionTextEl.offsetWidth;
+        questionTextEl.style.animation = 'slideIn 0.5s ease';
+
+        progressBar.style.width = ((currentQuestion) / questions.length) * 100 + '%';
+
+        optionsContainer.innerHTML = '';
+        const labels = ['A', 'B', 'C', 'D', 'E'];
+        q.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerHTML = `
+                <span class="option-label">${labels[idx]}</span>
+                <span>${opt}</span>
+            `;
+            btn.addEventListener('click', () => selectAnswer(idx, btn));
+            optionsContainer.appendChild(btn);
+        });
+
+        feedbackEl.className = 'feedback';
+        feedbackEl.textContent = '';
+        nextBtn.classList.remove('show');
+    }
+
+    // === FUNGSI PILIH JAWABAN ===
+    function selectAnswer(idx, btn) {
+        if (answered) return;
+        answered = true;
+
+        const q = questions[currentQuestion];
+        const allBtns = document.querySelectorAll('.option-btn');
+
+        allBtns.forEach(b => b.disabled = true);
+
+        if (idx === q.correct) {
+            btn.classList.add('correct');
+            score++;
+            scoreDisplay.textContent = `Skor: ${score}`;
+            scoreDisplay.style.animation = 'none';
+            void scoreDisplay.offsetWidth;
+            scoreDisplay.style.animation = 'pulse 0.5s ease';
+            
+            feedbackEl.className = 'feedback show correct-fb';
+            feedbackEl.innerHTML = `✅ <strong>Benar!</strong> ${q.explanation}`;
+        } else {
+            btn.classList.add('wrong');
+            allBtns[q.correct].classList.add('correct');
+            
+            feedbackEl.className = 'feedback show wrong-fb';
+            feedbackEl.innerHTML = `❌ <strong>Kurang tepat.</strong> Jawaban yang benar adalah <strong>${['A','B','C','D','E'][q.correct]}</strong>. ${q.explanation}`;
+        }
+
+        nextBtn.classList.add('show');
+        nextBtn.textContent = currentQuestion === questions.length - 1 ? 'Lihat Hasil 🏆' : 'Soal Berikutnya →';
+    }
+
+    // === FUNGSI NEXT ===
+    nextBtn.addEventListener('click', () => {
+        currentQuestion++;
+        if (currentQuestion < questions.length) {
+            loadQuestion();
+        } else {
+            showResult();
+        }
+    });
+
+    // === FUNGSI HASIL ===
+    function showResult() {
+        quizArea.style.display = 'none';
+        resultScreen.classList.add('show');
+        
+        finalScore.textContent = `${score}/${questions.length}`;
+        progressBar.style.width = '100%';
+
+        const percentage = (score / questions.length) * 100;
+        if (percentage === 100) {
+            resultMessage.innerHTML = '🌟 <strong>Sempurna!</strong> Kamu menguasai Algoritma Greedy dengan sangat baik!';
+        } else if (percentage >= 80) {
+            resultMessage.innerHTML = '🎯 <strong>Hebat!</strong> Pemahamanmu tentang Algoritma Greedy sudah sangat baik.';
+        } else if (percentage >= 60) {
+            resultMessage.innerHTML = '👍 <strong>Bagus!</strong> Terus pelajari materi untuk meningkatkan pemahamanmu.';
+        } else if (percentage >= 40) {
+            resultMessage.innerHTML = '📚 <strong>Cukup.</strong> Pelajari kembali konsep dasar Algoritma Greedy, Knapsack, dan Rekursi.';
+        } else {
+            resultMessage.innerHTML = '💪 <strong>Jangan menyerah!</strong> Baca kembali materi dan coba lagi.';
+        }
+    }
+
+    // === FUNGSI RESTART ===
+    restartBtn.addEventListener('click', () => {
+        currentQuestion = 0;
+        score = 0;
+        scoreDisplay.textContent = 'Skor: 0';
+        progressBar.style.width = '0%';
+        quizArea.style.display = 'block';
+        resultScreen.classList.remove('show');
+        loadQuestion();
+    });
+
+    // === INISIALISASI QUIZ (saat tab quiz pertama kali dibuka) ===
+    function initQuizIfNeeded() {
+        if (!quizInitialized) {
+            quizInitialized = true;
+            loadQuestion();
+        }
+    }
+
+    // Pantau klik tab quiz untuk inisialisasi
+    document.querySelectorAll('.nav-tabs button').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (this.getAttribute('data-tab') === 'quiz') {
+                initQuizIfNeeded();
+            }
+        });
+    });
+</script>
+</body>
+</html>
